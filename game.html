@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+<script>
+
+//informatii despre blocul de grafica (display area)
+var canvas;
+//unde desenam grafica
+var canvasContext; 
+var ballX = 50;
+
+window.onload = function() {
+	canvas = document.getElementById("gameCanvas");
+	canvasContext = canvas.getContext("2d");
+	
+	var FramesPerSecond = 30;
+	setInterval(callBoth, 1000/FramesPerSecond);
+}
+
+
+/*inaintea foloseam o singura functie pentru desenat si pentru miscat, acum pentru ca avem 2, treubie sa 
+facem ceva in legatura cu setInterval, asa ca le unim printr-o a treia functie. puteam folosi si o 
+annonymous function */
+function callBoth() {
+	moveEverything();
+	drawEverything();
+}
+
+function moveEverything() {
+	ballX = ballX + 5;
+	
+	if (ballX > 800) {
+		ballX = 0;
+	}
+	console.log(ballX);
+}
+	
+function drawEverything() {
+	canvasContext.fillStyle = "black";
+	canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+	canvasContext.fillStyle = "white";
+	canvasContext.fillRect(0, 210, 10, 100);	
+	canvasContext.fillStyle = "red";
+	canvasContext.fillRect(ballX, 100, 10, 10);
+}
+
+</script>
+</html>
