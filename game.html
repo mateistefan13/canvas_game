@@ -6,7 +6,35 @@
 var canvas;
 //unde desenam grafica
 var canvasContext; 
+// punctele de aparitie si vitezele mingii
 var ballX = 50;
+var ballSpeedX = 10;
+var ballY = 50;
+var ballSpeedY = 4;
+
+// scor
+var player1Score = 0;
+var player2Score = 0;
+
+
+// miscarea paletei
+var paddle1Y = 250;
+var paddle2Y = 250;
+const PADDLE_THICKNESS = 10;
+const PADDLE_HEIGHT = 100;
+
+
+
+function calculateMousePos(evt) {
+	var rect = canvas.getBoundingClientRect();
+	var root = document.documentElement;
+	var mouseX = evt.clientX - rect.left - root.scrollLeft;
+	var mouseY = evt.clientY - rect.top - root.scrollTop;
+	return {
+		x:mouseX,
+		y:mouseY
+	};
+}
 
 window.onload = function() {
 	canvas = document.getElementById("gameCanvas");
@@ -14,7 +42,23 @@ window.onload = function() {
 	
 	var FramesPerSecond = 30;
 	setInterval(callBoth, 1000/FramesPerSecond);
+	
+	canvas.addEventListener('mousemove', 
+			function(evt) {
+				var mousePos = calculateMousePos(evt);
+				// pentru a fi cu clickul pe mijloc
+				paddle1Y = mousePos.y - (PADDLE_HEIGHT/2);
+	})
 }
+
+
+function ballReset() {
+	ballSpeedX = -ballSpeedX;
+	ballX = canvas.width/2;
+	ballY = canvas.height/2;
+}
+
+
 
 
 /*inaintea foloseam o singura functie pentru desenat si pentru miscat, acum pentru ca avem 2, treubie sa 
@@ -25,22 +69,88 @@ function callBoth() {
 	drawEverything();
 }
 
-function moveEverything() {
-	ballX = ballX + 5;
-	
-	if (ballX > 800) {
-		ballX = 0;
+function computerMovement() {
+
+	// paddle2Y = partea de sus a paletei
+	var paddle2YCenter = paddle2Y + (PADDLE_HEIGHT/2);	
+	if (paddle2YCenter < ballY - 35) {
+		paddle2Y += 6;
+	} else if (paddle2YCenter > ballY + 35) {
+		paddle2Y -= 6;
 	}
-	console.log(ballX);
+}
+
+function moveEverything() {
+
+	computerMovement();
+
+	ballX += ballSpeedX;
+	ballY += ballSpeedY;
+	//accelerare
+	//ballSpeedX = ballSpeedX + 1;
+	
+	//intoarcerea
+	// nu e bine sa hardcodam dimensiunea ecranului, pentru ca poate vrem sa il schimbam pe viitor
+	// asta e peretele din stanga
+	if (ballX < 0) {
+		if (ballY > paddle1Y && ballY < paddle1Y + PADDLE_HEIGHT) {
+			ballSpeedX = -ballSpeedX;
+		} else {
+			ballReset();
+			player2Score++;
+		}
+	}
+	if (ballX > canvas.width) { //asta e peretele din dreapta
+		// coliziunea cu paleta
+		if (ballY > paddle2Y && ballY < paddle2Y + PADDLE_HEIGHT) {
+			ballSpeedX = -ballSpeedX;
+		} else {
+			ballReset();
+			player1Score++;
+		}
+	}
+	// peretele de sus
+	if (ballY < 0) {
+		ballSpeedY = -ballSpeedY;
+	}
+	// peretele de jos
+	if (ballY > canvas.height) {
+		// nu hardcodam, pentru ca vrem aceeasi viteza la intoarcere
+		ballSpeedY = -ballSpeedY;
+	}
 }
 	
 function drawEverything() {
-	canvasContext.fillStyle = "black";
-	canvasContext.fillRect(0, 0, canvas.width, canvas.height);
-	canvasContext.fillStyle = "white";
-	canvasContext.fillRect(0, 210, 10, 100);	
-	canvasContext.fillStyle = "red";
-	canvasContext.fillRect(ballX, 100, 10, 10);
+	// umple ecranul cu negru
+	colorRect(0, 0, canvas.width, canvas.height, "black");
+	
+	// deseneaza paleta de ping pong din stanga
+	colorRect(0, paddle1Y, PADDLE_THICKNESS, PADDLE_HEIGHT, "white");
+	
+	// deseneaza paleta de ping pong din dreapta, cea a computerului
+	colorRect(canvas.width - 10, paddle2Y, PADDLE_THICKNESS, PADDLE_HEIGHT, "white");
+	
+	// deseneaza mingea
+	colorCircle(ballX, ballY, 10, "white");
+	
+	// textul scorului
+	// arata textul "scorului" la pozitie de 100 cu 100
+	canvasContext.fillText(player1Score, 100, 100);
+	canvasContext.fillText(player2Score, canvas.width - 100, 100);
+	
+}
+
+// automatizarea ecranului si a paletei
+function colorRect(leftX, topY, width, height, drawColor) {
+	canvasContext.fillStyle = drawColor;
+	canvasContext.fillRect(leftX, topY, width, height);
+}
+// automatizarea mingii
+function colorCircle(centerX, centerY, radius, drawColor) {
+	canvasContext.fillStyle = drawColor;
+	canvasContext.beginPath();
+	canvasContext.arc(centerX, centerY, radius, 0, Math.PI*2, true);
+	canvasContext.fill();
 }
 
 </script>
